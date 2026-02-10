@@ -13,8 +13,7 @@ from tools.trip import get_mock_flights, get_mock_hotels
 from tools.exchange import get_currency_and_rates
 from tools.stocks import get_exchange_and_index
 
-load_dotenv()
-
+load_dotenv(override=False)
 # ==================================================
 # LLM
 # ==================================================
