@@ -1,11 +1,12 @@
 import os
 from dotenv import load_dotenv
-from typing import Dict
 
 from langchain_groq import ChatGroq
 from langchain_core.tools import tool
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain.agents import create_tool_calling_agent, AgentExecutor
+
+from langchain.agents import create_tool_calling_agent
+from langchain.agents.agent import AgentExecutor
 
 from tools.weather import get_weather
 from tools.trip import get_mock_flights, get_mock_hotels
