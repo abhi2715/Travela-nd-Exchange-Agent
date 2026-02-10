@@ -4,8 +4,7 @@ from dotenv import load_dotenv
 
 from agent import run_trip_planner, run_finance_agent
 
-load_dotenv()
-
+load_dotenv(override=False)
 st.set_page_config(page_title="Lab 12 – Agents", layout="wide")
 st.title("Lab 12 – Agent Development")
 
