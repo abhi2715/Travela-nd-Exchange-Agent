@@ -29,3 +29,14 @@ with tab2:
     if st.button("Get Finance Info"):
         with st.spinner("Fetching..."):
             st.markdown(run_finance_agent(country))
+import pandas as pd
+from tools.location import get_country_location
+
+loc = get_country_location(country)
+
+if "latitude" in loc:
+    df = pd.DataFrame({
+        "lat": [loc["latitude"]],
+        "lon": [loc["longitude"]],
+    })
+    st.map(df)
