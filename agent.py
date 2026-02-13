@@ -57,7 +57,7 @@ def currency_tool(country: str) -> str:
 @tool
 def stocks_tool(country: str) -> str:
     """Get stock exchange and index"""
-    return str(get_exchange_and_index(country))
+    return get_exchange_and_index(country)
 
 # ==================================================
 # TRIP AGENT
