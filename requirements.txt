@@ -4,3 +4,4 @@ langchain-groq==0.3.8
 python-dotenv
 requests
 yfinance
+pycountry
