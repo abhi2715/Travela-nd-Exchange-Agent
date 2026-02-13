@@ -12,57 +12,40 @@ COUNTRY_INDEX_MAP = {
 }
 
 def get_exchange_and_index(country: str):
-    if country not in COUNTRY_INDEX_MAP:
-        return {"error": "Country not supported"}
-
-    cfg = COUNTRY_INDEX_MAP[country]
+    symbol = COUNTRY_INDEX.get(country)
+    if not symbol:
+        return {"error": "Index not supported"}
 
     try:
-        ticker = yf.Ticker(cfg["symbol"])
-        data = ticker.history(period="1d")
-
-        if data.empty:
-            raise ValueError("No data")
+        ticker = yf.Ticker(symbol)
+        price = ticker.history(period="1d")["Close"].iloc[-1]
 
         return {
-            "exchange": cfg["exchange"],
-            "index": cfg["symbol"],
-            "current_value": round(data["Close"].iloc[-1], 2),
+            "exchange": symbol,
+            "current_value": round(price, 2)
         }
-
     except Exception:
-        return {
-            "exchange": cfg["exchange"],
-            "index": cfg["symbol"],
-            "current_value": "Data not available",
-        }
-import os
-import requests
+        return {"error": "Market data not available"}
 
-API_KEY = os.getenv("ALPHAVANTAGE_API_KEY")
 
-def get_leading_stocks(country: str):
+def get_top_stocks(country: str, limit=5):
+    symbol = COUNTRY_INDEX.get(country)
+    if not symbol:
+        return {"error": "Index not supported"}
+
     try:
-        # Global market movers
-        url = (
-            "https://www.alphavantage.co/query"
-            "?function=TOP_GAINERS_LOSERS"
-            f"&apikey={API_KEY}"
-        )
-        data = requests.get(url, timeout=10).json()
+        index = yf.Ticker(symbol)
+        holdings = index.funds_data.top_holdings
 
-        # Take top gainers as "leading"
-        top = data.get("top_gainers", [])[:5]
+        top = holdings.head(limit)
 
         return [
             {
-                "symbol": s["ticker"],
-                "price": s["price"],
-                "change_percent": s["change_percentage"]
+                "symbol": row["symbol"],
+                "name": row["holdingName"],
+                "weight_percent": round(row["holdingPercent"] * 100, 2)
             }
-            for s in top
+            for _, row in top.iterrows()
         ]
-
     except Exception:
-        return {"error": "Leading stocks not available"}
-
+        return {"error": "Top stocks not available"}
