@@ -1,6 +1,5 @@
 import os
 import requests
-import pycountry
 
 API_KEY = os.getenv("EXCHANGERATE_API_KEY")
 
@@ -9,33 +8,43 @@ def get_currency_and_rates(country: str):
         return {"error": "Exchange API key missing"}
 
     try:
-        # Find country
-        country_obj = pycountry.countries.search_fuzzy(country)[0]
+        # 1️⃣ Get country info from REST Countries API
+        country_res = requests.get(
+            f"https://restcountries.com/v3.1/name/{country}",
+            timeout=10
+        )
 
-        # Find currency
-        currency = pycountry.currencies.get(numeric=country_obj.numeric)
-        if not currency:
+        if country_res.status_code != 200:
+            return {"error": "Invalid country name"}
+
+        country_data = country_res.json()[0]
+
+        # Extract currency code (ISO 4217)
+        currencies = country_data.get("currencies")
+        if not currencies:
             return {"error": "Currency not found"}
 
-        currency_code = currency.alpha_3 if len(currency.alpha_3) == 3 else currency.alpha_3
+        currency_code = list(currencies.keys())[0]
 
     except Exception:
-        return {"error": "Invalid country name"}
-
-    url = f"https://v6.exchangerate-api.com/v6/{API_KEY}/latest/USD"
+        return {"error": "Failed to fetch country data"}
 
     try:
-        response = requests.get(url, timeout=10)
+        # 2️⃣ Fetch live exchange rates
+        rate_res = requests.get(
+            f"https://v6.exchangerate-api.com/v6/{API_KEY}/latest/USD",
+            timeout=10
+        )
 
-        if response.status_code != 200:
+        if rate_res.status_code != 200:
             return {"error": "Exchange API request failed"}
 
-        data = response.json()
+        rate_data = rate_res.json()
 
-        if data.get("result") != "success":
+        if rate_data.get("result") != "success":
             return {"error": "Exchange API returned error"}
 
-        rate = data["conversion_rates"].get(currency_code)
+        rate = rate_data["conversion_rates"].get(currency_code)
 
         if rate is None:
             return {"error": "Rate not available"}
