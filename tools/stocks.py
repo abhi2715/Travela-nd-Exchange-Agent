@@ -36,3 +36,33 @@ def get_exchange_and_index(country: str):
             "index": cfg["symbol"],
             "current_value": "Data not available",
         }
+import os
+import requests
+
+API_KEY = os.getenv("ALPHAVANTAGE_API_KEY")
+
+def get_leading_stocks(country: str):
+    try:
+        # Global market movers
+        url = (
+            "https://www.alphavantage.co/query"
+            "?function=TOP_GAINERS_LOSERS"
+            f"&apikey={API_KEY}"
+        )
+        data = requests.get(url, timeout=10).json()
+
+        # Take top gainers as "leading"
+        top = data.get("top_gainers", [])[:5]
+
+        return [
+            {
+                "symbol": s["ticker"],
+                "price": s["price"],
+                "change_percent": s["change_percentage"]
+            }
+            for s in top
+        ]
+
+    except Exception:
+        return {"error": "Leading stocks not available"}
+
